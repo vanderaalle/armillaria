@@ -23,9 +23,10 @@ molto agitato        →  everyone sees it
 
 ```
 armillaria/
-├── server.py        ← WebSocket server (relay)
+├── server.py        ← WebSocket server (relay + session logger)
 ├── sender.html      ← Sender interface (the kybernete)
 ├── receiver.html    ← Musician interface
+├── sessions/        ← Session logs (auto-created, not tracked by git)
 └── README.md
 ```
 
@@ -144,6 +145,31 @@ Matching is case-insensitive. Once a name is in the URL, it can be addressed. Th
 - Addressed instructions for other musicians are silently ignored
 - Name is shown in small text in the top-left corner
 - Auto-reconnects if the connection drops
+
+---
+
+## Session logging
+
+Every time `server.py` runs, it creates a log file in `sessions/`:
+
+```
+sessions/2026-04-01_20-30-00.jsonl
+```
+
+The file uses JSON Lines format — one JSON object per line, each with a UTC timestamp (`ts`) and an `event` field:
+
+```json
+{"ts": "2026-04-01T20:30:00.000Z", "event": "session_start"}
+{"ts": "2026-04-01T20:30:05.123Z", "event": "sender_connected"}
+{"ts": "2026-04-01T20:30:10.456Z", "event": "receiver_connected", "name": "Saxophone"}
+{"ts": "2026-04-01T20:30:15.789Z", "event": "message", "data": "pianissimo"}
+{"ts": "2026-04-01T20:30:20.000Z", "event": "message", "data": "Saxophone: solo"}
+{"ts": "2026-04-01T20:31:00.000Z", "event": "receiver_disconnected", "name": "Saxophone"}
+{"ts": "2026-04-01T20:31:05.000Z", "event": "sender_disconnected"}
+{"ts": "2026-04-01T20:31:05.001Z", "event": "session_end"}
+```
+
+The `sessions/` folder is created automatically if it doesn't exist. Logs are not tracked by git.
 
 ---
 
