@@ -26,6 +26,8 @@ armillaria/
 ├── server.py        ← WebSocket server (relay + session logger)
 ├── sender.html      ← Sender interface (the kybernete)
 ├── receiver.html    ← Musician interface
+├── log_to_text.py   ← Convert a session log to readable text
+├── replay.py        ← Replay a session log through the server
 ├── sessions/        ← Session logs (auto-created, not tracked by git)
 └── README.md
 ```
@@ -170,6 +172,48 @@ The file uses JSON Lines format — one JSON object per line, each with a UTC ti
 ```
 
 The `sessions/` folder is created automatically if it doesn't exist. Logs are not tracked by git.
+
+---
+
+## Converting a session log to text
+
+```bash
+python3 log_to_text.py sessions/2026-04-01_20-30-00.jsonl
+```
+
+Output:
+
+```
+[20:30:00.000] --- session start ---
+[20:30:05.123] sender connected
+[20:30:10.456] Saxophone connected
+[20:30:15.789] >> pianissimo
+[20:30:20.000] >> Saxophone: solo
+[20:31:00.000] Saxophone disconnected
+[20:31:05.000] sender disconnected
+[20:31:05.001] --- session end ---
+```
+
+---
+
+## Replaying a session
+
+With `server.py` running, replay a session log through it:
+
+```bash
+python3 replay.py sessions/2026-04-01_20-30-00.jsonl
+```
+
+The script connects as a sender and replays all messages with the original timing. Use `--speed` to adjust playback rate:
+
+```bash
+python3 replay.py sessions/2026-04-01_20-30-00.jsonl --speed 2.0   # double speed
+python3 replay.py sessions/2026-04-01_20-30-00.jsonl --speed 0.5   # half speed
+```
+
+Since the replay script connects as a regular sender, a human can open `sender.html` simultaneously and intervene live — pausing, adding instructions, or taking over at any point.
+
+Press **Ctrl+C** to stop the replay. The server keeps running.
 
 ---
 
