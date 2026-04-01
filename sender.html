@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Armillaria — Sender</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0a;
+      color: #eee;
+      font-family: monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #input {
+      font-size: 3vw;
+      font-family: monospace;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid #333;
+      color: #fff;
+      width: 80vw;
+      text-align: center;
+      outline: none;
+      padding: 0.3em 0;
+      caret-color: #fff;
+    }
+
+    #input:focus {
+      border-bottom-color: #fff;
+    }
+
+    #log {
+      margin-top: 3em;
+      font-size: 0.85em;
+      color: #333;
+      text-align: center;
+      min-height: 2em;
+    }
+
+    #status {
+      position: fixed;
+      bottom: 1em;
+      right: 1em;
+      font-size: 0.7em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <input id="input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type instruction, press Enter" />
+  <div id="log"></div>
+  <div id="status">connecting…</div>
+
+  <script>
+    const WS_URL = `ws://${window.location.hostname}:8765`;
+    const inputEl = document.getElementById("input");
+    const logEl = document.getElementById("log");
+    const statusEl = document.getElementById("status");
+
+    let ws;
+
+    function connect() {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        ws.send("sender");
+        statusEl.textContent = "● connected";
+        statusEl.style.color = "#1d3a1d";
+        inputEl.focus();
+      };
+
+      ws.onclose = () => {
+        statusEl.textContent = "disconnected — retrying…";
+        statusEl.style.color = "#552222";
+        setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const text = inputEl.value.trim();
+        if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(text);
+        logEl.textContent = `sent: ${text}`;
+        inputEl.value = "";
+      }
+    });
+
+    connect();
+  </script>
+</body>
+</html>
