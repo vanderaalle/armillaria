@@ -2,7 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Armillaria — Sender</title>
+  <script src="bg.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -10,7 +12,7 @@
       background: #0a0a0a;
       color: #eee;
       font-family: monospace;
-      height: 100vh;
+      height: 100vh; height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -18,17 +20,18 @@
     }
 
     #input {
-      font-size: 3vw;
+      font-size: clamp(1.2rem, 3vw, 2.5rem);
       font-family: monospace;
       background: transparent;
       border: none;
       border-bottom: 2px solid #333;
       color: #fff;
-      width: 80vw;
+      width: min(80vw, 640px);
       text-align: center;
       outline: none;
       padding: 0.3em 0;
       caret-color: #fff;
+      -webkit-appearance: none;
     }
 
     #input:focus {
@@ -50,33 +53,110 @@
       font-size: 0.7em;
       color: #333;
     }
+
+    canvas#bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #prompt, #input, #log, #status {
+      position: relative;
+      z-index: 1;
+    }
+
+    #prompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5em;
+    }
+
+    #prompt label {
+      font-size: 0.85em;
+      color: #444;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    #name-input {
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      font-family: monospace;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid #333;
+      color: #fff;
+      width: min(40vw, 320px);
+      text-align: center;
+      outline: none;
+      padding: 0.3em 0;
+      caret-color: #fff;
+      -webkit-appearance: none;
+    }
+
+    #name-input:focus {
+      border-bottom-color: #fff;
+    }
   </style>
 </head>
 <body>
 
-  <input id="input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type instruction, press Enter" />
+  <canvas id="bg"></canvas>
+
+  <div id="prompt">
+    <label>your name</label>
+    <input id="name-input" type="text" autocomplete="off" spellcheck="false" placeholder="…" />
+  </div>
+
+  <input id="input" type="text" autocomplete="off" autocorrect="off" spellcheck="false"
+         placeholder="type instruction, press Enter" style="display:none" />
   <div id="log"></div>
-  <div id="status">connecting…</div>
+  <div id="status"></div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const myName = params.get("name") || "sender";
-
-    document.title = `Armillaria — ${myName}`;
-
     const WS_URL = `ws://${window.location.hostname}:8765`;
+    const nameInputEl = document.getElementById("name-input");
+    const promptEl = document.getElementById("prompt");
     const inputEl = document.getElementById("input");
     const logEl = document.getElementById("log");
     const statusEl = document.getElementById("status");
 
-    let ws;
+    let myName, ws;
+
+    // URL param still works as a shortcut
+    const params = new URLSearchParams(window.location.search);
+    const presetName = params.get("name");
+    if (presetName) {
+      launch(presetName);
+    } else {
+      nameInputEl.value = localStorage.getItem("armillaria-name") || "";
+      nameInputEl.focus();
+      nameInputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const n = nameInputEl.value.trim();
+          if (n) launch(n);
+        }
+      });
+    }
+
+    function launch(name) {
+      myName = name;
+      localStorage.setItem("armillaria-name", myName);
+      document.title = `Armillaria — ${myName}`;
+      promptEl.style.display = "none";
+      inputEl.style.display = "";
+      statusEl.textContent = "connecting…";
+      connect();
+    }
 
     function connect() {
       ws = new WebSocket(WS_URL);
 
       ws.onopen = () => {
         ws.send(JSON.stringify({ role: "sender", name: myName }));
-        statusEl.textContent = `● connected as ${myName}`;
+        statusEl.textContent = `● ${myName}`;
         statusEl.style.color = "#1d3a1d";
         inputEl.focus();
       };
@@ -100,7 +180,7 @@
       }
     });
 
-    connect();
+    initBg('Armillaria');
   </script>
 </body>
 </html>

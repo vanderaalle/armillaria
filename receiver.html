@@ -2,7 +2,9 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Armillaria — Receiver</title>
+  <script src="bg.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -10,7 +12,7 @@
       background: #000;
       color: #fff;
       font-family: Georgia, serif;
-      height: 100vh;
+      height: 100vh; height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -19,7 +21,7 @@
     }
 
     #message {
-      font-size: 10vw;
+      font-size: clamp(2rem, 10vw, 10rem);
       text-align: center;
       padding: 2vw;
       line-height: 1.2;
@@ -28,7 +30,7 @@
     }
 
     #from {
-      font-size: 1.8vw;
+      font-size: clamp(0.8rem, 1.8vw, 1.4rem);
       font-family: monospace;
       color: #333;
       text-align: center;
@@ -52,27 +54,132 @@
       font-size: 0.75em;
       font-family: monospace;
       color: #333;
+      z-index: 1;
+    }
+
+    canvas#bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #prompt, #message, #from, #status {
+      position: relative;
+      z-index: 1;
+    }
+
+    #prompt {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5em;
+    }
+
+    #prompt label {
+      font-size: 0.85em;
+      font-family: monospace;
+      color: #444;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    #name-input {
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      font-family: monospace;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid #333;
+      color: #fff;
+      width: min(40vw, 320px);
+      text-align: center;
+      outline: none;
+      padding: 0.3em 0;
+      caret-color: #fff;
+      -webkit-appearance: none;
+    }
+
+    #name-input:focus {
+      border-bottom-color: #fff;
+    }
+
+    #prompt-hint {
+      font-size: 0.7em;
+      font-family: monospace;
+      color: #333;
+      letter-spacing: 0.05em;
+      min-height: 1em;
     }
   </style>
 </head>
 <body>
 
-  <div id="message"></div>
-  <div id="from"></div>
-  <div id="status">connecting…</div>
+  <canvas id="bg"></canvas>
+
+  <div id="prompt">
+    <label>your name</label>
+    <input id="name-input" type="text" autocomplete="off" spellcheck="false" placeholder="…" />
+    <span id="prompt-hint"></span>
+  </div>
+
+  <div id="message" style="display:none"></div>
+  <div id="from" style="display:none"></div>
+  <div id="status"></div>
   <div id="name-label"></div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const myName = params.get("name") || "receiver";
-
-    document.getElementById("name-label").textContent = myName;
-    document.title = `Armillaria — ${myName}`;
-
     const WS_URL = `ws://${window.location.hostname}:8765`;
+    const nameInputEl = document.getElementById("name-input");
+    const promptEl = document.getElementById("prompt");
     const messageEl = document.getElementById("message");
     const fromEl = document.getElementById("from");
     const statusEl = document.getElementById("status");
+    const nameLabelEl = document.getElementById("name-label");
+
+    const promptHintEl = document.getElementById("prompt-hint");
+
+    let myName;
+
+    // probe server visibility before name is entered
+    (function probeServer() {
+      const probe = new WebSocket(WS_URL);
+      probe.onopen = () => {
+        promptHintEl.textContent = "server reachable";
+        probe.close();
+      };
+      probe.onerror = () => {
+        promptHintEl.textContent = "server unreachable";
+        setTimeout(probeServer, 4000);
+      };
+    })();
+
+    const params = new URLSearchParams(window.location.search);
+    const presetName = params.get("name");
+    if (presetName) {
+      launch(presetName);
+    } else {
+      nameInputEl.value = localStorage.getItem("armillaria-name") || "";
+      nameInputEl.focus();
+      nameInputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const n = nameInputEl.value.trim();
+          if (n) launch(n);
+        }
+      });
+    }
+
+    function launch(name) {
+      myName = name;
+      localStorage.setItem("armillaria-name", myName);
+      document.title = `Armillaria — ${myName}`;
+      nameLabelEl.textContent = myName;
+      promptEl.style.display = "none";
+      messageEl.style.display = "";
+      fromEl.style.display = "";
+      statusEl.textContent = "connecting…";
+      connect();
+    }
 
     function connect() {
       const ws = new WebSocket(WS_URL);
@@ -94,7 +201,6 @@
           from = "";
         }
 
-        // Selective routing: check for "Name: instruction" pattern
         const match = text.match(/^(\w[\w\s]*?):\s*(.+)$/);
         if (match) {
           const target = match[1].trim().toLowerCase();
@@ -127,7 +233,7 @@
       }, 150);
     }
 
-    connect();
+    initBg('Armillaria');
   </script>
 </body>
 </html>

@@ -6,6 +6,26 @@ One sender types. Any number of receivers display. Instructions can be addressed
 
 ---
 
+## Screenshots
+
+**Armillaria — name prompt**
+
+![Receiver prompt](screenshots/receiver-prompt.png)
+
+**Armillaria — receiver displaying an instruction**
+
+![Receiver active](screenshots/receiver-active.png)
+
+**Armillaria — sender composing**
+
+![Sender active](screenshots/sender-active.png)
+
+**Stroma — node with message history**
+
+![Node active](screenshots/node-active.png)
+
+---
+
 ## How it works
 
 The sender types an instruction and presses Enter. It appears instantly on all connected receiver screens. If the instruction starts with a name followed by a colon, only that musician's screen shows it. Everything else is shared by all.
