@@ -59,6 +59,11 @@
   <div id="status">connecting…</div>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const myName = params.get("name") || "sender";
+
+    document.title = `Armillaria — ${myName}`;
+
     const WS_URL = `ws://${window.location.hostname}:8765`;
     const inputEl = document.getElementById("input");
     const logEl = document.getElementById("log");
@@ -70,8 +75,8 @@
       ws = new WebSocket(WS_URL);
 
       ws.onopen = () => {
-        ws.send("sender");
-        statusEl.textContent = "● connected";
+        ws.send(JSON.stringify({ role: "sender", name: myName }));
+        statusEl.textContent = `● connected as ${myName}`;
         statusEl.style.color = "#1d3a1d";
         inputEl.focus();
       };
