@@ -21,12 +21,19 @@ molto agitato        →  everyone sees it
 
 ## Files
 
+**Armillaria** (hierarchical — one or more senders, any number of receivers):
 ```
 armillaria/
 ├── server.py        ← WebSocket server (relay, supports multiple named senders)
 ├── sender.html      ← Sender interface (the kybernete)
-├── receiver.html    ← Musician interface
-└── README.md
+└── receiver.html    ← Musician interface
+```
+
+**Stroma** (flat — all nodes equal, everyone sends and receives):
+```
+armillaria/
+├── stroma_server.py ← WebSocket server (broadcasts to all nodes)
+└── node.html        ← Node interface (input + display on one page)
 ```
 
 ---
@@ -153,6 +160,50 @@ If no name is given, it defaults to `sender`. The page title updates to reflect 
 - The sender's name is shown below the instruction in smaller text
 - Addressed instructions for other musicians are silently ignored
 - Name is shown in small text in the top-left corner
+- Auto-reconnects if the connection drops
+
+---
+
+## Stroma
+
+Stroma is a flat variant of Armillaria. There is no conductor and no musicians — every participant is a node. Anyone can type and send; everyone sees everything. Messages broadcast to all connected nodes including the sender.
+
+```
+pianissimo           →  all nodes see it, attributed to the sender
+Amin7b5              →  all nodes see it, attributed to the sender
+```
+
+The screen shows the last few messages in large text, with older ones faded behind the most recent.
+
+### Files
+
+```
+stroma_server.py     ← WebSocket server (flat broadcast)
+node.html            ← Node interface (type and receive on the same page)
+```
+
+### Running Stroma
+
+Replace `server.py` with `stroma_server.py` in Terminal 1:
+
+```bash
+python3 stroma_server.py
+```
+
+Then give every participant the same URL with their name:
+
+```
+http://192.168.1.105:8000/node.html?name=Margherita
+http://192.168.1.105:8000/node.html?name=Luca
+http://192.168.1.105:8000/node.html?name=Cello
+```
+
+### Node interface
+
+- Type a message and press **Enter** to broadcast it to all nodes
+- The screen shows the most recent messages in large text; older ones fade behind
+- Your own messages appear attributed to your name, just like anyone else's
+- Name is shown in the bottom-left corner of the input bar
 - Auto-reconnects if the connection drops
 
 ---

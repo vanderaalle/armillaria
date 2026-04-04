@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stroma</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Georgia, serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── incoming messages ── */
+    #stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4vw;
+      gap: 2em;
+      overflow: hidden;
+    }
+
+    .msg {
+      text-align: center;
+      transition: opacity 0.3s ease;
+      width: 100%;
+    }
+
+    .msg.latest {
+      opacity: 1;
+    }
+
+    .msg.older {
+      opacity: 0.18;
+    }
+
+    .msg .text {
+      font-size: 9vw;
+      line-height: 1.15;
+      word-break: break-word;
+    }
+
+    .msg .sender {
+      font-size: 1.4vw;
+      font-family: monospace;
+      color: #444;
+      margin-top: 0.4em;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── input area ── */
+    #composer {
+      padding: 1.2em 2em;
+      border-top: 1px solid #111;
+      display: flex;
+      align-items: center;
+      gap: 1em;
+    }
+
+    #name-label {
+      font-family: monospace;
+      font-size: 0.75em;
+      color: #333;
+      white-space: nowrap;
+    }
+
+    #input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #222;
+      color: #888;
+      font-family: monospace;
+      font-size: 0.9em;
+      outline: none;
+      padding: 0.2em 0;
+      caret-color: #555;
+    }
+
+    #input:focus {
+      border-bottom-color: #444;
+      color: #ccc;
+    }
+
+    #status {
+      font-family: monospace;
+      font-size: 0.65em;
+      color: #222;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="stage"></div>
+
+  <div id="composer">
+    <span id="name-label"></span>
+    <input id="input" type="text" autocomplete="off" autocorrect="off"
+           spellcheck="false" placeholder="…" />
+    <span id="status">connecting…</span>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const myName = params.get("name") || "node";
+
+    document.title = `Stroma — ${myName}`;
+    document.getElementById("name-label").textContent = myName;
+
+    const WS_URL = `ws://${window.location.hostname}:8765`;
+    const stageEl = document.getElementById("stage");
+    const inputEl = document.getElementById("input");
+    const statusEl = document.getElementById("status");
+
+    const HISTORY = 3; // how many messages to show faded behind the latest
+    let messages = []; // { text, from }
+
+    function renderStage() {
+      stageEl.innerHTML = "";
+      const visible = messages.slice(-HISTORY);
+      visible.forEach((msg, i) => {
+        const div = document.createElement("div");
+        div.className = "msg " + (i === visible.length - 1 ? "latest" : "older");
+
+        const textEl = document.createElement("div");
+        textEl.className = "text";
+        textEl.textContent = msg.text;
+
+        const senderEl = document.createElement("div");
+        senderEl.className = "sender";
+        senderEl.textContent = msg.from;
+
+        div.appendChild(textEl);
+        div.appendChild(senderEl);
+        stageEl.appendChild(div);
+      });
+    }
+
+    let ws;
+
+    function connect() {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ name: myName }));
+        statusEl.textContent = "●";
+        statusEl.style.color = "#1d3a1d";
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          messages.push({ text: data.text, from: data.from });
+          renderStage();
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        statusEl.textContent = "○";
+        statusEl.style.color = "#552222";
+        setTimeout(connect, 2000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const text = inputEl.value.trim();
+        if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+        ws.send(text);
+        inputEl.value = "";
+      }
+    });
+
+    connect();
+  </script>
+</body>
+</html>
