@@ -7,7 +7,7 @@ nodes = {}
 async def broadcast_roster():
     roster = json.dumps({"type": "roster", "names": sorted(nodes.keys())})
     if nodes:
-        await asyncio.gather(*[ws.send(roster) for ws in nodes.values()])
+        await asyncio.gather(*[ws.send(roster) for ws in nodes.values()], return_exceptions=True)
 
 async def handler(websocket):
     first = await websocket.recv()
@@ -27,7 +27,7 @@ async def handler(websocket):
             print(f">> [{name}] {message}")
             envelope = json.dumps({"text": message, "from": name})
             await asyncio.gather(
-                *[ws.send(envelope) for ws in nodes.values()]
+                *[ws.send(envelope) for ws in nodes.values()], return_exceptions=True
             )
     finally:
         del nodes[name]

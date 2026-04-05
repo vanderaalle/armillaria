@@ -12,7 +12,7 @@ async def broadcast_roster():
     roster = json.dumps({"type": "roster", "names": sorted(receivers.keys())})
     targets = all_clients()
     if targets:
-        await asyncio.gather(*[ws.send(roster) for ws in targets])
+        await asyncio.gather(*[ws.send(roster) for ws in targets], return_exceptions=True)
 
 async def handler(websocket):
     first = await websocket.recv()
@@ -36,7 +36,7 @@ async def handler(websocket):
                 envelope = json.dumps({"text": message, "from": name})
                 if receivers:
                     await asyncio.gather(
-                        *[ws.send(envelope) for ws in receivers.values()]
+                        *[ws.send(envelope) for ws in receivers.values()], return_exceptions=True
                     )
         finally:
             del senders[name]
