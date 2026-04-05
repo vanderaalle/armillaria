@@ -99,6 +99,29 @@
     #name-input:focus {
       border-bottom-color: #fff;
     }
+
+    #roster {
+      position: fixed;
+      bottom: 1em;
+      left: 1em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+      z-index: 1;
+    }
+
+    .roster-name {
+      font-size: 0.7em;
+      font-family: monospace;
+      color: #2a2a2a;
+      cursor: pointer;
+      transition: color 0.15s;
+      user-select: none;
+    }
+
+    .roster-name:hover {
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -114,6 +137,7 @@
          placeholder="type instruction, press Enter" style="display:none" />
   <div id="log"></div>
   <div id="status"></div>
+  <div id="roster"></div>
 
   <script>
     const WS_URL = `ws://${window.location.hostname}:8765`;
@@ -122,6 +146,7 @@
     const inputEl = document.getElementById("input");
     const logEl = document.getElementById("log");
     const statusEl = document.getElementById("status");
+    const rosterEl = document.getElementById("roster");
 
     let myName, ws;
 
@@ -161,13 +186,35 @@
         inputEl.focus();
       };
 
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "roster") renderRoster(data.names);
+        } catch {}
+      };
+
       ws.onclose = () => {
         statusEl.textContent = "disconnected — retrying…";
         statusEl.style.color = "#552222";
+        rosterEl.innerHTML = "";
         setTimeout(connect, 2000);
       };
 
       ws.onerror = () => ws.close();
+    }
+
+    function renderRoster(names) {
+      rosterEl.innerHTML = "";
+      names.forEach(name => {
+        const el = document.createElement("div");
+        el.className = "roster-name";
+        el.textContent = name;
+        el.addEventListener("click", () => {
+          inputEl.value = `${name}: `;
+          inputEl.focus();
+        });
+        rosterEl.appendChild(el);
+      });
     }
 
     inputEl.addEventListener("keydown", (e) => {

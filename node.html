@@ -151,6 +151,29 @@
       position: relative;
       z-index: 1;
     }
+
+    #roster {
+      position: fixed;
+      bottom: 4em;
+      left: 2em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+      z-index: 1;
+    }
+
+    .roster-name {
+      font-size: 0.65em;
+      font-family: monospace;
+      color: #1e1e1e;
+      cursor: pointer;
+      transition: color 0.15s;
+      user-select: none;
+    }
+
+    .roster-name:hover {
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -161,6 +184,8 @@
     <label>your name</label>
     <input id="name-input" type="text" autocomplete="off" spellcheck="false" placeholder="…" />
   </div>
+
+  <div id="roster"></div>
 
   <div id="stage"></div>
 
@@ -179,6 +204,7 @@
     const inputEl = document.getElementById("input");
     const statusEl = document.getElementById("status");
     const nameLabelEl = document.getElementById("name-label");
+    const rosterEl = document.getElementById("roster");
 
     const HISTORY = 3;
     let messages = [];
@@ -243,6 +269,10 @@
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          if (data.type === "roster") {
+            renderRoster(data.names);
+            return;
+          }
           messages.push({ text: data.text, from: data.from });
           renderStage();
         } catch {}
@@ -251,10 +281,25 @@
       ws.onclose = () => {
         statusEl.textContent = "○";
         statusEl.style.color = "#552222";
+        rosterEl.innerHTML = "";
         setTimeout(connect, 2000);
       };
 
       ws.onerror = () => ws.close();
+    }
+
+    function renderRoster(names) {
+      rosterEl.innerHTML = "";
+      names.filter(n => n !== myName).forEach(name => {
+        const el = document.createElement("div");
+        el.className = "roster-name";
+        el.textContent = name;
+        el.addEventListener("click", () => {
+          inputEl.value = `${name}: `;
+          inputEl.focus();
+        });
+        rosterEl.appendChild(el);
+      });
     }
 
     inputEl.addEventListener("keydown", (e) => {

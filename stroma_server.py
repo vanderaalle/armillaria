@@ -4,6 +4,11 @@ import json
 
 nodes = {}
 
+async def broadcast_roster():
+    roster = json.dumps({"type": "roster", "names": sorted(nodes.keys())})
+    if nodes:
+        await asyncio.gather(*[ws.send(roster) for ws in nodes.values()])
+
 async def handler(websocket):
     first = await websocket.recv()
 
@@ -15,18 +20,19 @@ async def handler(websocket):
 
     nodes[name] = websocket
     print(f"Node connected: {name} ({len(nodes)} total)")
+    await broadcast_roster()
 
     try:
         async for message in websocket:
             print(f">> [{name}] {message}")
             envelope = json.dumps({"text": message, "from": name})
-            # broadcast to all nodes including sender
             await asyncio.gather(
                 *[ws.send(envelope) for ws in nodes.values()]
             )
     finally:
         del nodes[name]
         print(f"Node disconnected: {name} ({len(nodes)} total)")
+        await broadcast_roster()
 
 async def main():
     async with websockets.serve(handler, "0.0.0.0", 8765):

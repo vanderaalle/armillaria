@@ -5,6 +5,15 @@ import json
 senders = {}
 receivers = {}
 
+def all_clients():
+    return list(senders.values()) + list(receivers.values())
+
+async def broadcast_roster():
+    roster = json.dumps({"type": "roster", "names": sorted(receivers.keys())})
+    targets = all_clients()
+    if targets:
+        await asyncio.gather(*[ws.send(roster) for ws in targets])
+
 async def handler(websocket):
     first = await websocket.recv()
 
@@ -20,6 +29,7 @@ async def handler(websocket):
     if role == "sender":
         senders[name] = websocket
         print(f"Sender connected: {name}")
+        await broadcast_roster()
         try:
             async for message in websocket:
                 print(f">> [{name}] {message}")
@@ -31,16 +41,19 @@ async def handler(websocket):
         finally:
             del senders[name]
             print(f"Sender disconnected: {name}")
+            await broadcast_roster()
 
     else:
         receivers[name] = websocket
         print(f"Receiver connected: {name}")
+        await broadcast_roster()
         try:
             async for _ in websocket:
                 pass
         finally:
             del receivers[name]
             print(f"Receiver disconnected: {name}")
+            await broadcast_roster()
 
 async def main():
     async with websockets.serve(handler, "0.0.0.0", 8765):

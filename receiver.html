@@ -111,6 +111,22 @@
       letter-spacing: 0.05em;
       min-height: 1em;
     }
+
+    #roster {
+      position: fixed;
+      bottom: 1em;
+      left: 1em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+      z-index: 1;
+    }
+
+    .roster-name {
+      font-size: 0.7em;
+      font-family: monospace;
+      color: #1e1e1e;
+    }
   </style>
 </head>
 <body>
@@ -127,6 +143,7 @@
   <div id="from" style="display:none"></div>
   <div id="status"></div>
   <div id="name-label"></div>
+  <div id="roster"></div>
 
   <script>
     const WS_URL = `ws://${window.location.hostname}:8765`;
@@ -136,6 +153,7 @@
     const fromEl = document.getElementById("from");
     const statusEl = document.getElementById("status");
     const nameLabelEl = document.getElementById("name-label");
+    const rosterEl = document.getElementById("roster");
 
     const promptHintEl = document.getElementById("prompt-hint");
 
@@ -191,15 +209,16 @@
       };
 
       ws.onmessage = (event) => {
-        let text, from;
-        try {
-          const data = JSON.parse(event.data);
-          text = data.text.trim();
-          from = data.from || "";
-        } catch {
-          text = event.data.trim();
-          from = "";
+        let data;
+        try { data = JSON.parse(event.data); } catch { return; }
+
+        if (data.type === "roster") {
+          renderRoster(data.names);
+          return;
         }
+
+        let text = (data.text || "").trim();
+        let from = data.from || "";
 
         const match = text.match(/^(\w[\w\s]*?):\s*(.+)$/);
         if (match) {
@@ -216,10 +235,21 @@
       ws.onclose = () => {
         statusEl.textContent = "disconnected — retrying…";
         statusEl.style.color = "#552222";
+        rosterEl.innerHTML = "";
         setTimeout(connect, 2000);
       };
 
       ws.onerror = () => ws.close();
+    }
+
+    function renderRoster(names) {
+      rosterEl.innerHTML = "";
+      names.filter(n => n !== myName).forEach(name => {
+        const el = document.createElement("div");
+        el.className = "roster-name";
+        el.textContent = name;
+        rosterEl.appendChild(el);
+      });
     }
 
     function show(text, from) {
