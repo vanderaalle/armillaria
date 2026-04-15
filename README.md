@@ -4,6 +4,10 @@ A minimal system for sending real-time instructions to musicians during performa
 
 Senders type instructions. Receivers display them. Instructions can be addressed to everyone or to a specific musician by name. No apps, no accounts — musicians just open a URL in a browser.
 
+> A mushroom of this type in the Malheur National Forest in the Strawberry Mountains of eastern Oregon was found to be the largest fungal colony in the world, spanning an area of 3.5 square miles (2,200 acres; 9.1 km²). This organism is estimated to be some 8,000 years old and may weigh as much as 35,000 tons. If this colony is considered a single organism, it is one of the largest known organisms in the world by area.
+>
+> — [Wikipedia, *Armillaria ostoyae*](https://en.wikipedia.org/wiki/Armillaria_ostoyae)
+
 ---
 
 ## Screenshots
