@@ -1,6 +1,20 @@
 import asyncio
 import websockets
 import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+LOG_DIR = Path("sessions")
+
+log_file = None
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
+
+def log(event, **kwargs):
+    entry = {"ts": now_iso(), "event": event, **kwargs}
+    log_file.write(json.dumps(entry) + "\n")
+    log_file.flush()
 
 senders = {}
 receivers = {}
@@ -29,10 +43,12 @@ async def handler(websocket):
     if role == "sender":
         senders[name] = websocket
         print(f"Sender connected: {name}")
+        log("sender_connected")
         await broadcast_roster()
         try:
             async for message in websocket:
                 print(f">> [{name}] {message}")
+                log("message", data=message)
                 envelope = json.dumps({"text": message, "from": name})
                 if receivers:
                     await asyncio.gather(
@@ -45,11 +61,13 @@ async def handler(websocket):
         finally:
             del senders[name]
             print(f"Sender disconnected: {name}")
+            log("sender_disconnected")
             await broadcast_roster()
 
     else:
         receivers[name] = websocket
         print(f"Receiver connected: {name}")
+        log("receiver_connected", name=name)
         await broadcast_roster()
         try:
             async for _ in websocket:
@@ -57,11 +75,22 @@ async def handler(websocket):
         finally:
             del receivers[name]
             print(f"Receiver disconnected: {name}")
+            log("receiver_disconnected", name=name)
             await broadcast_roster()
 
 async def main():
-    async with websockets.serve(handler, "0.0.0.0", 8765):
-        print("Armillaria server running on port 8765")
-        await asyncio.Future()
+    global log_file
+    LOG_DIR.mkdir(exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
+    log_path = LOG_DIR / f"{ts}.jsonl"
+    with open(log_path, "w") as f:
+        log_file = f
+        log("session_start")
+        try:
+            async with websockets.serve(handler, "0.0.0.0", 8765):
+                print(f"Armillaria server running on port 8765 (logging to {log_path})")
+                await asyncio.Future()
+        finally:
+            log("session_end")
 
 asyncio.run(main())
