@@ -1,6 +1,6 @@
 # Armillaria
 
-A minimal system for sending real-time instructions to musicians during performance.
+A minimal system for sending real-time instructions to connected participants. Built for live music performance; usable in any context.
 
 Senders type instructions. Receivers display them. Instructions can be addressed to everyone or to a specific musician by name. No apps, no accounts — musicians just open a URL in a browser.
 
