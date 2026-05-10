@@ -60,6 +60,14 @@ armillaria/
 └── node.html        ← Node interface (input + display on one page)
 ```
 
+**Session utilities:**
+```
+armillaria/
+├── sessions/        ← Auto-created; one .jsonl log per server run
+├── log_to_text.py   ← Convert a session log to readable text
+└── replay.py        ← Replay a session log through the running server
+```
+
 ---
 
 ## Requirements
@@ -229,6 +237,29 @@ http://192.168.1.105:8000/node.html?name=Cello
 - Your own messages appear attributed to your name, just like anyone else's
 - Name is shown in the bottom-left corner of the input bar
 - Auto-reconnects if the connection drops
+
+---
+
+## Session logs
+
+Every time a server starts it creates a timestamped log file in `sessions/`:
+
+```
+sessions/2026-05-10_14-30-00.jsonl
+```
+
+Each line is a JSON record with a UTC timestamp and an event type (connect, disconnect, message). The file is written and closed cleanly on shutdown.
+
+**Convert to readable text:**
+```bash
+python3 log_to_text.py sessions/2026-05-10_14-30-00.jsonl
+```
+
+**Replay a session through the running server** (connects as a sender and sends messages with the original timing):
+```bash
+python3 replay.py sessions/2026-05-10_14-30-00.jsonl
+python3 replay.py sessions/2026-05-10_14-30-00.jsonl --speed 2.0
+```
 
 ---
 
