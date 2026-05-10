@@ -190,6 +190,11 @@
         try {
           const data = JSON.parse(event.data);
           if (data.type === "roster") renderRoster(data.names);
+          if (data.type === "ack") {
+            logEl.textContent = data.empty
+              ? `sent: ${data.text} (no receivers)`
+              : `sent: ${data.text}`;
+          }
         } catch {}
       };
 
@@ -222,7 +227,6 @@
         const text = inputEl.value.trim();
         if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
         ws.send(text);
-        logEl.textContent = `sent: ${text}`;
         inputEl.value = "";
       }
     });

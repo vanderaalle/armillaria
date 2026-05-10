@@ -38,6 +38,10 @@ async def handler(websocket):
                     await asyncio.gather(
                         *[ws.send(envelope) for ws in receivers.values()], return_exceptions=True
                     )
+                    ack = json.dumps({"type": "ack", "text": message})
+                else:
+                    ack = json.dumps({"type": "ack", "text": message, "empty": True})
+                await websocket.send(ack)
         finally:
             del senders[name]
             print(f"Sender disconnected: {name}")
