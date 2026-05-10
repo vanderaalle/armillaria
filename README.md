@@ -172,7 +172,7 @@ If no name is given, it defaults to `sender`. The page title updates to reflect 
 
 - Type an instruction and press **Enter** to send
 - The field clears immediately, ready for the next instruction
-- A small confirmation line shows the last sent message
+- A small confirmation line appears once the server confirms the message was broadcast; if no receivers are connected it shows `(no receivers)`
 - The page auto-reconnects if the server restarts
 - Multiple named senders can be connected simultaneously
 
