@@ -36,7 +36,7 @@ The sender types an instruction and presses Enter. It appears instantly on all c
 
 ```
 pianissimo           →  everyone sees it
-Saxophone: solo      →  only the Saxophone screen shows it
+Contrabass: solo      →  only the Contrabass screen shows it
 Amin7b5              →  everyone sees it
 molto agitato        →  everyone sees it
 ```
@@ -114,7 +114,7 @@ Then open these URLs in your browser:
 | Role | URL |
 |------|-----|
 | Sender | `http://localhost:8000/sender.html?name=Conductor` |
-| Receiver (any name) | `http://localhost:8000/receiver.html?name=Saxophone` |
+| Receiver (any name) | `http://localhost:8000/receiver.html?name=Contrabass` |
 
 You can open multiple receiver tabs with different names to simulate the full setup.
 
@@ -135,7 +135,7 @@ Run the same two terminal commands as above. Then share these URLs with musician
 | Role | URL |
 |------|-----|
 | Sender | `http://192.168.1.105:8000/sender.html?name=Conductor` |
-| Saxophone | `http://192.168.1.105:8000/receiver.html?name=Saxophone` |
+| Contrabass | `http://192.168.1.105:8000/receiver.html?name=Contrabass` |
 | Piano | `http://192.168.1.105:8000/receiver.html?name=Piano` |
 | Cello | `http://192.168.1.105:8000/receiver.html?name=Cello` |
 
@@ -150,7 +150,7 @@ There is no predefined list of instruments or roles. Any name works — instrume
 The name is set once in the URL when the musician opens their page:
 
 ```
-receiver.html?name=Saxophone
+receiver.html?name=Contrabass
 receiver.html?name=Margherita
 receiver.html?name=LowStrings
 receiver.html?name=Group2
@@ -159,7 +159,7 @@ receiver.html?name=Group2
 To address that receiver, type the same name followed by a colon:
 
 ```
-Saxophone: sul ponticello
+Contrabass: sul ponticello
 Margherita: attacca
 LowStrings: pizzicato
 ```
