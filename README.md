@@ -8,6 +8,11 @@ Senders type instructions. Receivers display them. Instructions can be addressed
 >
 > — [Wikipedia, *Armillaria ostoyae*](https://en.wikipedia.org/wiki/Armillaria_ostoyae)
 
+See the companion paper for the theoretical framework: *Armillaria: A Minimal Networked System for Real-Time Performance Conduction* (CIM 2026).
+
+**[CIM 2026 talk — live HTML](https://vanderaalle.github.io/armillaria/presentations/armillariaPres.html)** · [PDF](docs/presentations/armillariaPres.pdf)
+(source: [`docs/presentations/armillariaPres.html`](docs/presentations/armillariaPres.html))
+
 ---
 
 ## Screenshots
